@@ -1,5 +1,5 @@
-import { Body, JsonController, Post, Res } from "routing-controllers";
-import { Response } from "express";
+import { Body, JsonController, Post, Req, Res } from "routing-controllers";
+import { Response, Request } from "express";
 import { MinLength } from "class-validator";
 import argon2 from "argon2";
 import { User } from "../entities/User";
@@ -14,10 +14,14 @@ class LoginData {
   async getHashedPassword(): Promise<string> {
     return await argon2.hash(this.password);
   }
+
+  async validatePassword(expectedHash: string): Promise<boolean> {
+    return await argon2.verify(expectedHash, this.password);
+  }
 }
 
 class LoginDataWithApiKey extends LoginData {
-  @MinLength(0)
+  @MinLength(1)
   key: string;
 
   hasValidKey(): boolean {
@@ -28,13 +32,21 @@ class LoginDataWithApiKey extends LoginData {
 @JsonController("/user")
 export class UserController {
   @Post("/login")
-  async login(@Body() loginData: LoginData, @Res() res: Response) {
+  async login(
+    @Body() loginData: LoginData,
+    @Req() req: Request,
+    @Res() res: Response
+  ) {
     const user = await User.findOne({ username: loginData.username });
 
-    if (user?.password !== (await loginData.getHashedPassword()))
+    if (!user) return res.status(401).json({ error: "Wrong credentials" });
+
+    if (!loginData.validatePassword(user.password))
       return res.status(401).json({ error: "Wrong credentials. " });
 
-    return "logged in";
+    req.session!.user = loginData.username;
+
+    return res.json({ success: "Successfully logged in." });
   }
 
   @Post("/register")

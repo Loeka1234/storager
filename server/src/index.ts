@@ -1,7 +1,9 @@
-import express from "express";
+import "reflect-metadata";
 import { getConnectionOptions, createConnection } from "typeorm";
 import { __prod__, PORT } from "./constants";
 import { User } from "./entities/User";
+import { createExpressServer } from "routing-controllers";
+import { UserController } from "./controllers/UserController";
 
 const main = async () => {
   const connectionOptions = await getConnectionOptions();
@@ -17,7 +19,9 @@ const main = async () => {
 
     if (__prod__) conn.runMigrations();
 
-    const app = express();
+    const app = createExpressServer({
+      controllers: [UserController],
+    });
 
     app.listen(PORT, () => console.log(`Server listening on port ${PORT}`));
   } catch (err) {

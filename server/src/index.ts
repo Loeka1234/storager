@@ -1,6 +1,6 @@
 import "reflect-metadata";
 import { getConnectionOptions, createConnection } from "typeorm";
-import { __prod__, PORT, COOKIE_SECRET, COOKIE_NAME } from "./constants";
+import { __prod__, PORT, COOKIE_SECRET, COOKIE_NAME, CORS } from "./constants";
 import { User } from "./entities/User";
 import { useExpressServer } from "routing-controllers";
 import { UserController } from "./controllers/UserController";
@@ -9,6 +9,8 @@ import session from "express-session";
 import redis from "redis";
 import connectRedis from "connect-redis";
 import express from "express";
+import cors from "cors";
+import { MeController } from "./controllers/MeController";
 
 const main = async () => {
   const connectionOptions = await getConnectionOptions();
@@ -48,8 +50,15 @@ const main = async () => {
       })
     );
 
+    app.use(
+      cors({
+        credentials: true,
+        origin: CORS,
+      })
+    );
+
     useExpressServer(app, {
-      controllers: [UserController, TestController],
+      controllers: [UserController, TestController, MeController],
     }).listen(PORT, () => console.log(`Server listening on port ${PORT}`));
   } catch (err) {
     console.log("Error while starting server: ", err);

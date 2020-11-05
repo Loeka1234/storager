@@ -1,9 +1,11 @@
-import React, { useContext, useState } from "react";
+import React, { Suspense, useContext } from "react";
 import { Redirect, Route, RouteProps } from "react-router-dom";
+import { StorageLayout } from "../layouts/StorageLayout.comp";
 import { UserContext } from "../utils/UserContext";
 
 type PrivateRouteProps = RouteProps & {
   requiredToBeLoggedIn?: boolean;
+  useStorageLayout?: boolean;
 };
 
 // If requiredToBeLoggedIn is true: the user needs te be logged in
@@ -11,16 +13,23 @@ type PrivateRouteProps = RouteProps & {
 export const PrivateRoute: React.FC<PrivateRouteProps> = ({
   children,
   requiredToBeLoggedIn = true,
+  useStorageLayout = false,
   ...rest
 }) => {
   const [user] = useContext(UserContext)!;
+
+  let Comp: any;
+  if (useStorageLayout) Comp = StorageLayout;
+  else Comp = React.Fragment;
 
   return (
     <Route
       {...rest}
       render={({ location }) =>
         (requiredToBeLoggedIn && user) || (!requiredToBeLoggedIn && !user) ? (
-          children
+          <Comp>
+            <Suspense fallback="Loading...">{children}</Suspense>
+          </Comp>
         ) : (
           <Redirect
             to={{

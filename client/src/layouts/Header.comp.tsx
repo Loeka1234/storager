@@ -1,6 +1,14 @@
 import React, { useContext } from "react";
-import { NAVBAR_HEIGHT } from "../constants";
-import { Avatar, Button, Flex, Heading, Input, Text } from "@chakra-ui/core";
+import { BORDER_STYLE, NAVBAR_HEIGHT, NAVIGATION_WIDTH } from "../constants";
+import {
+  Avatar,
+  Box,
+  Button,
+  Flex,
+  Heading,
+  Input,
+  Text,
+} from "@chakra-ui/core";
 import { Link } from "react-router-dom";
 import { UserContext } from "../utils/UserContext";
 
@@ -15,16 +23,18 @@ export const Header: React.FC<HeaderProps> = () => {
     <Flex
       w="100%"
       height={NAVBAR_HEIGHT}
-      border="1px solid rgb(226, 232, 240)"
+      border={BORDER_STYLE}
       justify="space-between"
       align="center"
     >
-      <Flex align="center" w="auto">
-        <Heading size="lg" ml={4}>
-          Storager
-        </Heading>
-        <Input ml={20} minW={300} placeholder="search..." />
-        <Button ml={2} px={5}>
+      <Flex align="center" flexGrow={1} justify="flex-start">
+        <Box w={NAVIGATION_WIDTH}>
+          <Heading size="lg" pl={2}>
+            Storager
+          </Heading>
+        </Box>
+        <Input maxW={300} placeholder="search..." />
+        <Button px={5} ml={2}>
           Search
         </Button>
       </Flex>

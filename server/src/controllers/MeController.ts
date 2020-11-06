@@ -6,7 +6,9 @@ export class MeController {
   @Get("/me")
   me(@Req() req: Request, @Res() res: Response) {
     if (req.session && req.session.user)
-      return res.status(200).json({ username: req.session.user });
+      return res
+        .status(200)
+        .json({ username: (req.session.user as SessionUser).username });
     else return res.status(401).json(null);
   }
 }

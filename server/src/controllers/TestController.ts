@@ -1,11 +1,18 @@
 import { Request } from "express";
-import { Get, JsonController, Req } from "routing-controllers";
+import {
+  Authorized,
+  CurrentUser,
+  Get,
+  JsonController,
+  Req,
+} from "routing-controllers";
 
 @JsonController("/test")
 export class TestController {
   @Get("/")
-  testGet(@Req() req: Request) {
-    console.log("Session: ", req.session!.user);
-    return "test";
+  @Authorized()
+  testGet(@Req() req: Request, @CurrentUser() user: SessionUser) {
+    console.log("Session:", user);
+    return user;
   }
 }

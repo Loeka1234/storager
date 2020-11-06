@@ -2,7 +2,8 @@ import "reflect-metadata";
 import { getConnectionOptions, createConnection } from "typeorm";
 import { __prod__, PORT, COOKIE_SECRET, COOKIE_NAME, CORS } from "./constants";
 import { User } from "./entities/User";
-import { useExpressServer } from "routing-controllers";
+import { File } from "./entities/File";
+import { Action, useExpressServer } from "routing-controllers";
 import { UserController } from "./controllers/UserController";
 import { TestController } from "./controllers/TestController";
 import session from "express-session";
@@ -11,6 +12,7 @@ import connectRedis from "connect-redis";
 import express from "express";
 import cors from "cors";
 import { MeController } from "./controllers/MeController";
+import { FileController } from "./controllers/FileController";
 
 const main = async () => {
   const connectionOptions = await getConnectionOptions();
@@ -18,7 +20,7 @@ const main = async () => {
   Object.assign(connectionOptions, {
     synchronize: !__prod__,
     logging: !__prod__,
-    entities: [User],
+    entities: [User, File],
   });
 
   try {
@@ -58,7 +60,19 @@ const main = async () => {
     );
 
     useExpressServer(app, {
-      controllers: [UserController, TestController, MeController],
+      controllers: [
+        UserController,
+        TestController,
+        MeController,
+        FileController,
+      ],
+      authorizationChecker: async (action: Action, roles: string[]) => {
+        if (action.request.session.user) return true;
+        else return false;
+      },
+      currentUserChecker: async (action: Action) => {
+        return action.request.session.user;
+      },
     }).listen(PORT, () => console.log(`Server listening on port ${PORT}`));
   } catch (err) {
     console.log("Error while starting server: ", err);

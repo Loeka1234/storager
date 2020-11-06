@@ -66,7 +66,7 @@ const main = async () => {
         MeController,
         FileController,
       ],
-      authorizationChecker: async (action: Action, roles: string[]) => {
+      authorizationChecker: async (action: Action) => {
         if (action.request.session.user) return true;
         else return false;
       },

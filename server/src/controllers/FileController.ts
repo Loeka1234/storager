@@ -16,6 +16,8 @@ import path from "path";
 import fs from "fs";
 import { File } from "../entities/File";
 import { promisify } from "util";
+import { Max, Min } from "class-validator";
+import { getConnection } from "typeorm";
 
 const storage = multer.diskStorage({
   destination: function (req, _, cb) {
@@ -37,8 +39,11 @@ const upload = multer({
 });
 
 class FileMetadataBody {
+  @Min(1)
+  @Max(50)
   limit: number;
-  cursor: string;
+
+  cursor: string | null;
 }
 
 @JsonController("/file")
@@ -93,12 +98,25 @@ export class FileController {
     }
   }
 
-  @Get("/file-metadata")
+  @Get("/metadata")
   @Authorized()
-  getFileMetadata(
+  async getFileMetadata(
     @CurrentUser() user: SessionUser,
     @Body() body: FileMetadataBody
   ) {
-    // TODO: implement paginated file metadata
+    let meta = getConnection()
+      .createQueryBuilder()
+      .select('"fileName","realName", "mimeType"')
+      .where('"userId" = :id', { id: user.id })
+      .from(File, "file")
+      .orderBy('"realName"')
+      .limit(body.limit);
+
+    if (body.cursor)
+      meta = meta.andWhere(`"realName" > :realName`, {
+        realName: body.cursor,
+      });
+
+    return await meta.execute();
   }
 }

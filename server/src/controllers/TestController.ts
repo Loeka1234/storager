@@ -11,7 +11,7 @@ import {
 export class TestController {
   @Get("/")
   @Authorized()
-  testGet(@Req() req: Request, @CurrentUser() user: SessionUser) {
+  testGet(@Req() _: Request, @CurrentUser() user: SessionUser) {
     console.log("Session:", user);
     return user;
   }

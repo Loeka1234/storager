@@ -1,11 +1,11 @@
 import {
   Authorized,
-  Body,
   BodyParam,
   CurrentUser,
   Get,
   JsonController,
   Post,
+  QueryParams,
   Req,
   Res,
   UseBefore,
@@ -38,12 +38,20 @@ const upload = multer({
   storage,
 });
 
-class FileMetadataBody {
+// class FileMetadataQueryParams {
+//   @Min(1)
+//   @Max(50)
+//   limit: number;
+
+//   cursor: string | null;
+// }
+
+class FileMetadataQueryParams {
   @Min(1)
   @Max(50)
   limit: number;
 
-  cursor: string | null;
+  offset?: number;
 }
 
 @JsonController("/file")
@@ -56,14 +64,14 @@ export class FileController {
     @Res() res: Response,
     @CurrentUser() user: SessionUser
   ) {
-    console.log(req.file);
+    const { filename, originalname, mimetype, path } = req.file;
     try {
       await File.insert({
-        fileName: req.file.filename,
-        realName: req.file.originalname,
-        mimeType: req.file.mimetype,
+        fileName: filename,
+        realName: originalname,
+        mimeType: mimetype,
         user: () => user.id,
-        path: req.file.path,
+        path,
       });
       return res.status(200).json({ success: "Successfully uploaded file." });
     } catch (err) {
@@ -98,24 +106,43 @@ export class FileController {
     }
   }
 
+  // TODO: Fix cursor pagination instead of offset pagination
+  // @Get("/metadata")
+  // @Authorized()
+  // async getFileMetadata(
+  //   @CurrentUser() user: SessionUser,
+  //   @QueryParams() params: FileMetadataQueryParams
+  // ) {
+  //   let meta = getConnection()
+  //     .createQueryBuilder()
+  //     .select('"fileName","realName", "mimeType"')
+  //     .from(File, "file")
+  //     .where('"userId" = :id', { id: user.id })
+  //     .orderBy('"realName"')
+  //     .limit(params.limit);
+
+  //   if (params.cursor)
+  //     meta = meta.andWhere(`"realName" > :realName`, {
+  //       realName: params.cursor,
+  //     });
+
+  //   return await meta.execute();
+  // }
+
   @Get("/metadata")
   @Authorized()
-  async getFileMetadata(
+  async getFileMetadata2(
     @CurrentUser() user: SessionUser,
-    @Body() body: FileMetadataBody
+    @QueryParams() params: FileMetadataQueryParams
   ) {
     let meta = getConnection()
       .createQueryBuilder()
-      .select('"fileName","realName", "mimeType"')
-      .where('"userId" = :id', { id: user.id })
+      .select('"fileName", "realName", "mimeType"')
       .from(File, "file")
+      .where('"userId" = :id', { id: user.id })
       .orderBy('"realName"')
-      .limit(body.limit);
-
-    if (body.cursor)
-      meta = meta.andWhere(`"realName" > :realName`, {
-        realName: body.cursor,
-      });
+      .limit(params.limit)
+      .offset(params.offset ? params.offset : 0);
 
     return await meta.execute();
   }

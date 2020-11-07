@@ -1,5 +1,6 @@
 import { Box, Flex } from "@chakra-ui/core";
 import React from "react";
+import { NAVBAR_HEIGHT } from "../constants";
 import { useWindowWidth } from "../hooks/useWindowWidth";
 import { Header } from "./Header.comp";
 import { Navigation } from "./Navigation.comp";
@@ -14,9 +15,25 @@ export const StorageLayout: React.FC<StorageLayoutProps> = ({ children }) => {
   return (
     <>
       {width < 700 ? null : <Header />}
-      <Flex as="main" minH="100vh">
+      <Flex minH={`calc(100vh - ${NAVBAR_HEIGHT}px)`}>
         <Navigation />
-        {children}
+        <Box
+          flexGrow={1}
+          overflowX="hidden"
+          overflowY="scroll"
+          height={`calc(100vh - ${NAVBAR_HEIGHT}px)`}
+        >
+          <Flex
+            as="main"
+            align="center"
+            flexDir="column"
+            flexGrow={1}
+            minH="150vh"
+            w="100%"
+          >
+            {children}
+          </Flex>
+        </Box>
       </Flex>
     </>
   );

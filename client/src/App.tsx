@@ -3,6 +3,7 @@ import { BrowserRouter, Switch, Redirect } from "react-router-dom";
 import { PrivateRoute } from "./components/PrivateRoute.comp";
 import { PublicRoute } from "./components/PublicRoute.comp";
 import { UserProvider } from "./utils/UserContext";
+import "./global.css";
 
 const LoginPage = lazy(() => import("./pages/login.page"));
 const HomePage = lazy(() => import("./pages/index.page"));

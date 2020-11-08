@@ -10,7 +10,7 @@ import {
   Text,
 } from "@chakra-ui/core";
 import { Link } from "react-router-dom";
-import { UserContext } from "../utils/UserContext";
+import { UserContext } from "../contexts/UserContext";
 
 export interface HeaderProps {}
 

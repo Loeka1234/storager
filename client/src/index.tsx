@@ -3,6 +3,11 @@ import ReactDOM from "react-dom";
 import App from "./App";
 import reportWebVitals from "./reportWebVitals";
 import { CSSReset, ThemeProvider } from "@chakra-ui/core";
+import axios from "axios";
+import { API_ENDPOINT } from "./constants";
+
+axios.defaults.withCredentials = true;
+axios.defaults.baseURL = API_ENDPOINT;
 
 ReactDOM.render(
   <React.StrictMode>

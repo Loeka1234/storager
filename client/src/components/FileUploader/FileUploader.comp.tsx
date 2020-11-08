@@ -11,11 +11,11 @@ import {
   ModalHeader,
   ModalOverlay,
 } from "@chakra-ui/core";
-import React, { useState } from "react";
+import React, { useContext, useState } from "react";
 import { FileUploaderDropArea } from "./FileUploaderDropArea";
 import axios from "axios";
-import { API_ENDPOINT } from "../../constants";
 import { GrFormCheckmark } from "react-icons/gr";
+import { FileListContext } from "../../contexts/FileListContext";
 
 interface UploadProgress {
   [key: string]: {
@@ -44,6 +44,7 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
   const [uploadProgress, setUploadProgress] = useState<UploadProgress>(
     UPLOAD_PROGRESS_INITIAL_STATE
   );
+  const { reset: resetFileList } = useContext(FileListContext)!;
 
   const uploadFiles = () => {
     setUploadProgress({});
@@ -54,11 +55,10 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
       body.append("file", file, file.name);
 
       axios
-        .post(API_ENDPOINT + "/file/upload", body, {
+        .post("/file/upload", body, {
           headers: {
             "Content-Type": "multipart/form-data",
           },
-          withCredentials: true,
           onUploadProgress: (progressEvent: ProgressEvent) => {
             const percentage =
               Math.round(
@@ -104,19 +104,18 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
     setUploadProgress(UPLOAD_PROGRESS_INITIAL_STATE);
   };
 
+  const closeFileUploader = () => {
+    resetToInitialState();
+    resetFileList();
+    handleClose();
+  };
+
   return (
-    <Modal
-      isOpen={isOpen}
-      onClose={() => {
-        resetToInitialState();
-        handleClose();
-      }}
-      size="xl"
-    >
+    <Modal isOpen={isOpen} onClose={closeFileUploader} size="xl">
       <ModalOverlay />
       <ModalContent>
         <ModalHeader>Upload files</ModalHeader>
-        <ModalCloseButton onClick={handleClose} />
+        <ModalCloseButton onClick={closeFileUploader} />
         <ModalBody pb={6}>
           {/* TODO: Implement file uploader */}
           <FileUploaderDropArea
@@ -147,9 +146,15 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
         </ModalBody>
 
         <ModalFooter>
-          <Button variantColor="blue" mr={3} onClick={uploadFiles}>
-            Upload
-          </Button>
+          {successfullUploaded ? (
+            <Button variantColor="red" mr={3} onClick={closeFileUploader}>
+              Close
+            </Button>
+          ) : (
+            <Button variantColor="teal" mr={3} onClick={uploadFiles}>
+              Upload
+            </Button>
+          )}
         </ModalFooter>
       </ModalContent>
     </Modal>

@@ -1,7 +1,7 @@
 import React, { Suspense, useContext } from "react";
 import { Redirect, Route, RouteProps } from "react-router-dom";
 import { StorageLayout } from "../layouts/StorageLayout.comp";
-import { UserContext } from "../utils/UserContext";
+import { UserContext } from "../contexts/UserContext";
 
 type PrivateRouteProps = RouteProps & {
   requiredToBeLoggedIn?: boolean;

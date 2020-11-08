@@ -1,5 +1,5 @@
 import React, { useEffect, useState, createContext } from "react";
-import { fetchUser } from "./fetchUser";
+import { fetchUser } from "../utils/fetchUser";
 
 export interface User {
   username: string;

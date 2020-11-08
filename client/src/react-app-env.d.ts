@@ -1,1 +1,7 @@
 /// <reference types="react-scripts" />
+
+interface FileMetadata {
+  fileName: string;
+  realName: string;
+  mimeType: string;
+}

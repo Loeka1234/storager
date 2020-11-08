@@ -2,10 +2,11 @@ import React, { lazy } from "react";
 import { BrowserRouter, Switch, Redirect } from "react-router-dom";
 import { PrivateRoute } from "./components/PrivateRoute.comp";
 import { PublicRoute } from "./components/PublicRoute.comp";
-import { UserProvider } from "./utils/UserContext";
 import "./global.css";
+import { Providers } from "./contexts/Providers.comp";
 
 const LoginPage = lazy(() => import("./pages/login.page"));
+const RegisterPage = lazy(() => import("./pages/register.page"));
 const HomePage = lazy(() => import("./pages/index.page"));
 const MyStoragePage = lazy(() => import("./pages/mystorage.page"));
 const RecentPage = lazy(() => import("./pages/recent.page"));
@@ -13,7 +14,7 @@ const RecentPage = lazy(() => import("./pages/recent.page"));
 function App() {
   return (
     <>
-      <UserProvider>
+      <Providers>
         <BrowserRouter>
           <Switch>
             <PrivateRoute path="/mystorage" exact useStorageLayout>
@@ -25,13 +26,16 @@ function App() {
             <PrivateRoute path="/login" exact requiredToBeLoggedIn={false}>
               <LoginPage />
             </PrivateRoute>
+            <PrivateRoute path="/register" exact requiredToBeLoggedIn={false}>
+              <RegisterPage />
+            </PrivateRoute>
             <PublicRoute path="/" exact>
               <HomePage />
             </PublicRoute>
             <Redirect to="/" />
           </Switch>
         </BrowserRouter>
-      </UserProvider>
+      </Providers>
     </>
   );
 }

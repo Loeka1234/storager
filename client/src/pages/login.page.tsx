@@ -5,12 +5,13 @@ import {
   FormControl,
   FormLabel,
   Input,
+  useToast,
 } from "@chakra-ui/core";
 import React, { useContext, useState } from "react";
-import axios from "axios";
-import { API_ENDPOINT } from "../constants";
+import axios, { AxiosError } from "axios";
 import { useHistory } from "react-router-dom";
-import { UserContext } from "../utils/UserContext";
+import { UserContext } from "../contexts/UserContext";
+import { defaultErrorToastKeys } from "../utils/defaultErrorToastKeys";
 
 const LoginPage: React.FC = () => {
   const [username, setUsername] = useState("");
@@ -18,6 +19,7 @@ const LoginPage: React.FC = () => {
   const [, setUser] = useContext(UserContext)!;
   const history = useHistory();
   const [loading, setLoading] = useState(false);
+  const toast = useToast();
 
   const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -25,23 +27,29 @@ const LoginPage: React.FC = () => {
     try {
       setLoading(true);
 
-      const res = await axios.post(
-        API_ENDPOINT + "/user/login",
-        {
-          username,
-          password,
-        },
-        {
-          withCredentials: true, // TODO: global withcredentials
-        }
-      );
+      await axios.post("/user/login", {
+        username,
+        password,
+      });
 
-      setUser({ username });
+      setLoading(false);
 
       history.push("/mystorage");
-      setLoading(false);
-    } catch (err) {
-      console.error("Error while logging in: ", err);
+      setUser({ username });
+    } catch (e) {
+      const err = e as AxiosError;
+      if (err.response?.status === 401)
+        toast({
+          ...defaultErrorToastKeys,
+          title: "Wrong credentials",
+          description: "Wrong credentials. Please try again.",
+        });
+      else
+        toast({
+          ...defaultErrorToastKeys,
+          title: "Internal server error.",
+          description: "An uknown error occured. Please try again.",
+        });
       setLoading(false);
     }
   };

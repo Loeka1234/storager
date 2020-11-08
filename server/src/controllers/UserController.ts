@@ -41,7 +41,7 @@ export class UserController {
 
     if (!user) return res.status(401).json({ error: "Wrong credentials" });
 
-    if (!loginData.validatePassword(user.password))
+    if (!(await loginData.validatePassword(user.password)))
       return res.status(401).json({ error: "Wrong credentials. " });
 
     req.session!.user = ({

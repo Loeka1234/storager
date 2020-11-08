@@ -64,6 +64,7 @@ const LoginPage: React.FC = () => {
             <Input
               id="password"
               placeholder="password"
+              type="password"
               onChange={(e: any) => setPassword(e.target.value)}
               value={password}
             />

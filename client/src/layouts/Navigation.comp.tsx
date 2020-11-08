@@ -12,8 +12,8 @@ import {
   PseudoBox,
   Text,
 } from "@chakra-ui/core";
-import { Link, useRouteMatch } from "react-router-dom";
-import React, { useEffect } from "react";
+import { Link } from "react-router-dom";
+import React, {  useState } from "react";
 import { BORDER_STYLE, NAVIGATION_WIDTH } from "../constants";
 import {
   AiOutlineFolderAdd,
@@ -23,59 +23,74 @@ import {
 import { MdStorage } from "react-icons/md";
 import { IconType } from "react-icons/lib";
 import { useHistory } from "react-router-dom";
+import { FileUploader } from "../components/FileUploader/FileUploader.comp";
 
 export interface NavigationProps {}
 
 export const Navigation: React.FC<NavigationProps> = () => {
-  return (
-    <Flex
-      align="flex-start"
-      justify="flex-start"
-      flexDir="column"
-      borderRight={BORDER_STYLE}
-      w={NAVIGATION_WIDTH}
-    >
-      <Menu>
-        <MenuButton as={Button} borderRadius={5} mt={4} ml={4}>
-          <Icon name="add" mr={2} color="teal.500" />
-          New
-        </MenuButton>
-        <MenuList placement="bottom">
-          <MenuGroup title="Add">
-            <MenuItem>
-              <Box
-                as={AiOutlineFolderAdd}
-                size="22px"
-                mr={1}
-                color="teal.500"
-              />
-              Directory
-            </MenuItem>
-          </MenuGroup>
-          <MenuDivider />
-          <MenuGroup title="Upload">
-            <MenuItem>
-              <Box as={AiOutlineFileAdd} size="22px" mr={1} color="teal.500" />
-              File
-            </MenuItem>
-            <MenuItem>
-              <Box
-                as={AiOutlineFolderAdd}
-                size="22px"
-                mr={1}
-                color="teal.500"
-              />
-              Directory
-            </MenuItem>
-          </MenuGroup>
-        </MenuList>
-      </Menu>
+  const [openFileUploader, setOpenFileUploader] = useState(false);
 
-      <Flex w="100%" as="nav" flexDir="column" mt={2}>
-        <NavItem icon={MdStorage} text="My Storage" url="/mystorage" />
-        <NavItem icon={AiOutlineClockCircle} text="Recent" url="/recent" />
+  const handleClose = () => {
+    setOpenFileUploader(false);
+  };
+
+  return (
+    <>
+      <FileUploader isOpen={openFileUploader} handleClose={handleClose} />
+      <Flex
+        align="flex-start"
+        justify="flex-start"
+        flexDir="column"
+        borderRight={BORDER_STYLE}
+        w={NAVIGATION_WIDTH}
+      >
+        <Menu>
+          <MenuButton as={Button} borderRadius={5} mt={4} ml={4}>
+            <Icon name="add" mr={2} color="teal.500" />
+            New
+          </MenuButton>
+          <MenuList placement="bottom">
+            <MenuGroup title="Add">
+              <MenuItem>
+                <Box
+                  as={AiOutlineFolderAdd}
+                  size="22px"
+                  mr={1}
+                  color="teal.500"
+                />
+                Directory
+              </MenuItem>
+            </MenuGroup>
+            <MenuDivider />
+            <MenuGroup title="Upload">
+              <MenuItem onClick={() => setOpenFileUploader(true)}>
+                <Box
+                  as={AiOutlineFileAdd}
+                  size="22px"
+                  mr={1}
+                  color="teal.500"
+                />
+                File
+              </MenuItem>
+              <MenuItem>
+                <Box
+                  as={AiOutlineFolderAdd}
+                  size="22px"
+                  mr={1}
+                  color="teal.500"
+                />
+                Directory
+              </MenuItem>
+            </MenuGroup>
+          </MenuList>
+        </Menu>
+
+        <Flex w="100%" as="nav" flexDir="column" mt={2}>
+          <NavItem icon={MdStorage} text="My Storage" url="/mystorage" />
+          <NavItem icon={AiOutlineClockCircle} text="Recent" url="/recent" />
+        </Flex>
       </Flex>
-    </Flex>
+    </>
   );
 };
 

@@ -9,6 +9,7 @@ type FileIconProps = BoxProps & {
 export const FileIcon: React.FC<FileIconProps> = ({ mimeType, ...rest }) => {
   switch (mimeType) {
     case "image/png":
+    case "image/jpeg":
       return <Box as={AiOutlineFileImage} {...rest} />;
     default:
       return <Box as={AiOutlineFile} {...rest} />;

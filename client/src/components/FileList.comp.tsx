@@ -12,11 +12,18 @@ interface ResponseFileMetadata {
   mimeType: string;
 }
 
+const FILES_INITIAL_STATE = null;
+const NEW_FILES_TO_FETCH_INITIAL_STATE = true;
+
 export interface FileListProps {}
 
 export const FileList: React.FC<FileListProps> = () => {
-  const [files, setFiles] = useState<ResponseFileMetadata[] | null>(null);
-  const [newFilesToFetch, setNewFilesToFetch] = useState(true);
+  const [files, setFiles] = useState<ResponseFileMetadata[] | null>(
+    FILES_INITIAL_STATE
+  );
+  const [newFilesToFetch, setNewFilesToFetch] = useState(
+    NEW_FILES_TO_FETCH_INITIAL_STATE
+  );
 
   useEffect(() => {
     const fetchFiles = async () => {
@@ -49,6 +56,13 @@ export const FileList: React.FC<FileListProps> = () => {
     setFiles([...files, ...newFiles]);
   };
 
+  const resetToInitialState = () => {
+    setFiles(FILES_INITIAL_STATE);
+    setNewFilesToFetch(NEW_FILES_TO_FETCH_INITIAL_STATE);
+
+    // TODO: implement file upload reloads this FileList
+  };
+
   return (
     <>
       <Grid
@@ -70,11 +84,10 @@ export const FileList: React.FC<FileListProps> = () => {
             key={fileName}
           >
             <Flex h="50px" justify="flex-start" align="center" cursor="pointer">
-              <FileIcon mimeType={mimeType} size="32px" mx={2} />
-              <Text>{realName}</Text>
-              {/* <Flex flexGrow={1} justifyContent="flex-end">
-              <Box as={AiOutlineDownload} size="32px" mr={2} />
-            </Flex> */}
+              <FileIcon mimeType={mimeType} size="32px" minW="32px" mx={2} />
+              <Text mr={2} isTruncated>
+                {realName}
+              </Text>
             </Flex>
           </PseudoBox>
         ))}

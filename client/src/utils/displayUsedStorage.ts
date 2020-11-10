@@ -1,0 +1,11 @@
+const KB = 1;
+const MB = KB * 1000;
+const GB = MB * 1000;
+const TB = GB * 1000;
+
+export const displayStorage = (storage: number) => {
+	if (storage < MB) return `${storage}KB`;
+	if (storage < GB) return `${Math.ceil(storage / MB)}MB`;
+	if (storage < TB) return `${Math.ceil(storage / GB)}GB`;
+	return `${Math.ceil(storage / TB)}TB`;
+};

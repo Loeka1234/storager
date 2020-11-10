@@ -12,6 +12,7 @@ import axios, { AxiosError } from "axios";
 import { useHistory } from "react-router-dom";
 import { UserContext } from "../contexts/UserContext";
 import { defaultErrorToastKeys } from "../utils/defaultErrorToastKeys";
+import { fetchUser } from './../utils/fetchUser';
 
 const LoginPage: React.FC = () => {
   const [username, setUsername] = useState("");
@@ -34,8 +35,10 @@ const LoginPage: React.FC = () => {
 
       setLoading(false);
 
+      const user = await fetchUser();
+
       history.push("/mystorage");
-      setUser({ username });
+      setUser(user);
     } catch (e) {
       const err = e as AxiosError;
       if (err.response?.status === 401)

@@ -10,25 +10,29 @@ import {
 	ModalFooter,
 	ModalHeader,
 	ModalOverlay,
+	useToast,
 } from "@chakra-ui/core";
 import React, { useContext, useState } from "react";
 import { FileUploaderDropArea } from "./FileUploaderDropArea";
-import axios from "axios";
+import axios, { AxiosError } from "axios";
 import { GrFormCheckmark } from "react-icons/gr";
 import { FileListContext } from "../../contexts/FileListContext";
 import { UserContext } from "../../contexts/UserContext";
-import userEvent from "@testing-library/user-event";
+import { BiErrorCircle } from "react-icons/bi";
+import { defaultErrorToastKeys } from "../../utils/defaultErrorToastKeys";
 
 interface UploadProgress {
 	[key: string]: {
-		state: string;
+		state: "pending" | "error" | "finished";
 		percentage: number;
 	};
 }
 
 const FILES_INITIAL_STATE: File[] = [];
-const SUCCESSFULL_UPLOADED_INITIAL_STATE = false;
 const UPLOAD_PROGRESS_INITIAL_STATE = {};
+const UPLOAD_STATE_INITIAL_STATE: uploadState = "none";
+
+type uploadState = "none" | "uploading" | "finished";
 
 export interface FileUploaderProps {
 	isOpen: boolean;
@@ -40,16 +44,18 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
 	handleClose,
 }) => {
 	const [files, setFiles] = useState<(File | null)[]>(FILES_INITIAL_STATE);
-	const [successfullUploaded, setSuccessfullUploaded] = useState(
-		SUCCESSFULL_UPLOADED_INITIAL_STATE
+	const [uploadState, setUploadState] = useState<uploadState>(
+		UPLOAD_STATE_INITIAL_STATE
 	);
 	const [uploadProgress, setUploadProgress] = useState<UploadProgress>(
 		UPLOAD_PROGRESS_INITIAL_STATE
 	);
 	const { reset: resetFileList } = useContext(FileListContext)!;
 	const [, setUser] = useContext(UserContext)!;
+	const toast = useToast();
 
 	const uploadFiles = () => {
+		setUploadState("uploading");
 		setUploadProgress({});
 		files.forEach((file, i) => {
 			if (!file) return;
@@ -99,25 +105,30 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
 								  }
 								: user
 						);
-
-					if (i === files.length - 1) setSuccessfullUploaded(true);
 				})
-				.catch(() => {
-					console.error("Error while uploading file.");
-					setUploadProgress({
-						...uploadProgress,
+				.catch((err: AxiosError) => {
+					toast({
+						...defaultErrorToastKeys,
+						title: "Uploading failed",
+						description:
+							err.response?.data.error ||
+							"Internal server error.",
+					});
+					setUploadProgress(p => ({
+						...p,
 						[file.name]: {
 							state: "error",
 							percentage: 0,
 						},
-					});
+					}));
 				});
+			if (i === files.length - 1) setUploadState("finished");
 		});
 	};
 
 	const resetToInitialState = () => {
 		setFiles(FILES_INITIAL_STATE);
-		setSuccessfullUploaded(SUCCESSFULL_UPLOADED_INITIAL_STATE);
+		setUploadState(UPLOAD_STATE_INITIAL_STATE);
 		setUploadProgress(UPLOAD_PROGRESS_INITIAL_STATE);
 	};
 
@@ -134,16 +145,22 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
 				<ModalHeader>Upload files</ModalHeader>
 				<ModalCloseButton onClick={closeFileUploader} />
 				<ModalBody pb={6}>
-					{/* TODO: Implement file uploader */}
 					<FileUploaderDropArea
 						onFilesAdded={newFiles =>
 							setFiles(files => [...files, ...newFiles])
 						}
-						disabled={false}
+						disabled={
+							uploadState === "uploading" ||
+							uploadState === "finished"
+						}
 					/>
 					<Box w="100%">
-						{files.map(file =>
-							file ? (
+						{files.map(file => {
+							if (!file) return null;
+
+							const state = uploadProgress[file.name]?.state;
+
+							return file ? (
 								<Flex
 									key={file.name}
 									justify="space-between"
@@ -151,20 +168,25 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
 									w="100%"
 								>
 									<Text>{file.name}</Text>
-									{uploadProgress[file.name]?.percentage ===
-									100 ? (
+									{state === "error" ? (
+										<Box
+											as={BiErrorCircle}
+											color="red"
+											size="32px"
+										/>
+									) : state === "finished" ? (
 										<Box as={GrFormCheckmark} size="32px" />
 									) : (
 										uploadProgress[file.name]?.percentage
 									)}
 								</Flex>
-							) : null
-						)}
+							) : null;
+						})}
 					</Box>
 				</ModalBody>
 
 				<ModalFooter>
-					{successfullUploaded ? (
+					{uploadState === "finished" ? (
 						<Button
 							variantColor="red"
 							mr={3}
@@ -177,6 +199,7 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
 							variantColor="teal"
 							mr={3}
 							onClick={uploadFiles}
+							isLoading={uploadState === "uploading"}
 						>
 							Upload
 						</Button>

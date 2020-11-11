@@ -4,7 +4,9 @@ import {
 	CurrentUser,
 	Get,
 	JsonController,
+	Param,
 	Post,
+	QueryParam,
 	QueryParams,
 	Req,
 	Res,
@@ -98,12 +100,10 @@ export class FileController {
 				sizeInKB
 			);
 
-			return res
-				.status(200)
-				.json({
-					success: "Successfully uploaded file.",
-					fileSizeUploaded: sizeInKB,
-				});
+			return res.status(200).json({
+				success: "Successfully uploaded file.",
+				fileSizeUploaded: sizeInKB,
+			});
 		} catch (err) {
 			console.log("Error while saving file to database: ", err);
 			return res.status(500).json({ error: "Error while saving file." });
@@ -115,7 +115,7 @@ export class FileController {
 	async download(
 		@Res() res: Response,
 		@CurrentUser() user: SessionUser,
-		@BodyParam("fileName") fileName: string
+		@QueryParam("fileName") fileName: string
 	) {
 		const file = await File.findOne({
 			where: { fileName },

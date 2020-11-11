@@ -43,7 +43,7 @@ export const Navigation: React.FC<NavigationProps> = () => {
 				justify="flex-start"
 				flexDir="column"
 				borderRight={BORDER_STYLE}
-				w={NAVIGATION_WIDTH}
+				minW={NAVIGATION_WIDTH}
 			>
 				<Menu>
 					<MenuButton as={Button} borderRadius={5} mt={4} ml={4}>

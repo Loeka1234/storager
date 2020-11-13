@@ -1,10 +1,8 @@
 import {
 	Authorized,
-	BodyParam,
 	CurrentUser,
 	Get,
 	JsonController,
-	Param,
 	Post,
 	QueryParam,
 	QueryParams,
@@ -42,19 +40,17 @@ const upload = multer({
 	storage,
 });
 
-// class FileMetadataQueryParams {
-//   @Min(1)
-//   @Max(50)
-//   limit: number;
-
-//   cursor: string | null;
-// }
-
-class FileMetadataQueryParams {
+class DefaultPaginationQueryParams {
 	@Min(1)
 	@Max(50)
 	limit: number;
+}
+class CursorPaginationQueryParams extends DefaultPaginationQueryParams {
+	"cursor-realName"?: string;
+	"cursor-fileName"?: string;
+}
 
+class OffsetPaginationQueryParams extends DefaultPaginationQueryParams {
 	offset?: number;
 }
 
@@ -68,10 +64,10 @@ export class FileController {
 		@Res() res: Response,
 		@CurrentUser() user: SessionUser
 	) {
-		const { filename, originalname, mimetype, path, size } = req.file; // File size is in bytes
-		const sizeInKB = bytesToKB(size);
-
 		try {
+			const { filename, originalname, mimetype, size } = req.file; // File size is in bytes
+			const sizeInKB = bytesToKB(size);
+
 			const userInDB = await User.findOne({ id: parseInt(user.id) });
 			if (typeof userInDB?.usedStorage === "undefined")
 				return res
@@ -89,7 +85,7 @@ export class FileController {
 				realName: originalname,
 				mimeType: mimetype,
 				user: () => user.id,
-				path,
+				path: path.join("storage", user.username, filename), // Fixed this
 				size: sizeInKB,
 			});
 
@@ -128,7 +124,9 @@ export class FileController {
 			});
 
 		try {
-			await promisify<string, void>(res.sendFile.bind(res))(file.path);
+			await promisify<string, void>(res.sendFile.bind(res))(
+				path.join(process.cwd(), file.path)
+			);
 			return res;
 		} catch (err) {
 			console.log("Error while downloading file ", err);
@@ -138,44 +136,81 @@ export class FileController {
 		}
 	}
 
-	// TODO: Fix cursor pagination instead of offset pagination
-	// @Get("/metadata")
-	// @Authorized()
-	// async getFileMetadata(
-	//   @CurrentUser() user: SessionUser,
-	//   @QueryParams() params: FileMetadataQueryParams
-	// ) {
-	//   let meta = getConnection()
-	//     .createQueryBuilder()
-	//     .select('"fileName","realName", "mimeType"')
-	//     .from(File, "file")
-	//     .where('"userId" = :id', { id: user.id })
-	//     .orderBy('"realName"')
-	//     .limit(params.limit);
+	// TODO: Update frontend with cursor paginated metadata
+	@Get("/cursor-paginated-metadata")
+	@Authorized()
+	async getFileMetadata(
+		@CurrentUser() user: SessionUser,
+		@QueryParams() params: CursorPaginationQueryParams,
+		@Res() res: Response
+	) {
+		try {
+			if (
+				(params["cursor-fileName"] && !params["cursor-realName"]) ||
+				(params["cursor-realName"] && !params["cursor-fileName"])
+			)
+				return res.status(400).json({
+					error:
+						"Params should include 'cursor-fileName' and 'cursor-realName'",
+				});
 
-	//   if (params.cursor)
-	//     meta = meta.andWhere(`"realName" > :realName`, {
-	//       realName: params.cursor,
-	//     });
+			let meta = getConnection()
+				.createQueryBuilder()
+				.select('"fileName", "realName", "mimeType"')
+				.from(File, "file")
+				.where('"userId" = :id', { id: user.id })
+				.orderBy('("realName", "fileName")')
+				.limit(params.limit);
 
-	//   return await meta.execute();
-	// }
+			if (params["cursor-fileName"] && params["cursor-realName"]) {
+				meta = meta.andWhere(
+					'(:realName, :fileName) < ("realName", "fileName")',
+					{
+						realName: params["cursor-realName"],
+						fileName: params["cursor-fileName"],
+					}
+				);
+			}
 
-	@Get("/metadata")
+			return await meta.execute();
+		} catch (err) {
+			console.log(
+				"Error while getting cursor paginated filemetadata: ",
+				err
+			);
+			return res.status(500).json({
+				error: "Something went wrong while getting filemetadata.",
+			});
+		}
+	}
+
+	// TODO: fix frontend url
+	@Get("/offset-paginated-metadata")
 	@Authorized()
 	async getFileMetadata2(
 		@CurrentUser() user: SessionUser,
-		@QueryParams() params: FileMetadataQueryParams
+		@QueryParams() params: OffsetPaginationQueryParams,
+		@Res() res: Response
 	) {
-		let meta = getConnection()
-			.createQueryBuilder()
-			.select('"fileName", "realName", "mimeType"')
-			.from(File, "file")
-			.where('"userId" = :id', { id: user.id })
-			.orderBy('"realName"')
-			.limit(params.limit)
-			.offset(params.offset ? params.offset : 0);
+		try {
+			let meta = getConnection()
+				.createQueryBuilder()
+				.select('"fileName", "realName", "mimeType"')
+				.from(File, "file")
+				.where('"userId" = :id', { id: user.id })
+				.orderBy('"realName"')
+				.limit(params.limit)
+				.offset(params.offset ? params.offset : 0);
 
-		return await meta.execute();
+			return await meta.execute();
+		} catch (err) {
+			console.log(
+				"Error while getting offset paginated filemetadata: ",
+				err
+			);
+			res.status(500).json({
+				error: "Something went wrong while getting filemetadata.",
+			});
+		}
 	}
 }

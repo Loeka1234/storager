@@ -27,3 +27,8 @@ Storager is a Google Drive clone. The purpose of this project is to understand t
   - PostgreSQL
   
   - Redis (cookies)
+
+### Todo
+- Fix pagination so that files are displayed per page (instead of fetch more)
+- Search in files
+- Check recently files

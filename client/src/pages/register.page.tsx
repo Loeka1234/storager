@@ -6,7 +6,7 @@ import {
   FormLabel,
   Input,
   useToast,
-} from "@chakra-ui/core";
+} from "@chakra-ui/react";
 import React, { useState } from "react";
 import axios, { AxiosError } from "axios";
 import { useHistory } from "react-router-dom";
@@ -96,7 +96,7 @@ const RegisterPage: React.FC = () => {
               value={accessToken}
             />
           </FormControl>
-          <Button type="submit" variantColor="teal" mt={2} isLoading={loading}>
+          <Button type="submit" colorScheme="teal" mt={2} isLoading={loading}>
             Register
           </Button>
         </form>

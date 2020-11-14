@@ -1,5 +1,5 @@
 import React, { useContext, useEffect } from "react";
-import { Button, Flex, Grid, PseudoBox, Text, useToast } from "@chakra-ui/core";
+import { Button, Flex, Grid, Text, useToast } from "@chakra-ui/react";
 import { FileIcon } from "./FileIcon.comp";
 import { FileListContext } from "../contexts/FileListContext";
 import axios from "axios";
@@ -56,7 +56,7 @@ export const FileList: React.FC<FileListProps> = () => {
 				mt={2}
 			>
 				{files?.map(({ realName, fileName, mimeType }) => (
-					<PseudoBox
+					<Flex
 						backgroundColor="gray.200"
 						transition="all .3s ease-in-out"
 						borderRadius={3}
@@ -67,24 +67,21 @@ export const FileList: React.FC<FileListProps> = () => {
 						onClick={() =>
 							downloadFile(fileName, mimeType, realName)
 						}
+						h="50px"
+						justify="flex-start"
+						align="center"
+						cursor="pointer"
 					>
-						<Flex
-							h="50px"
-							justify="flex-start"
-							align="center"
-							cursor="pointer"
-						>
-							<FileIcon
-								mimeType={mimeType}
-								size="32px"
-								minW="32px"
-								mx={2}
-							/>
-							<Text mr={2} isTruncated>
-								{realName}
-							</Text>
-						</Flex>
-					</PseudoBox>
+						<FileIcon
+							mimeType={mimeType}
+							w="32px"
+							h="32px"
+							mx={2}
+						/>
+						<Text mr={2} isTruncated>
+							{realName}
+						</Text>
+					</Flex>
 				))}
 			</Grid>
 			{newFilesToFetch && (

@@ -11,7 +11,7 @@ import {
 	ModalHeader,
 	ModalOverlay,
 	useToast,
-} from "@chakra-ui/core";
+} from "@chakra-ui/react";
 import React, { useContext, useState } from "react";
 import { FileUploaderDropArea } from "./FileUploaderDropArea";
 import axios, { AxiosError } from "axios";
@@ -172,10 +172,11 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
 										<Box
 											as={BiErrorCircle}
 											color="red"
-											size="32px"
+											w="32px"
+											z="32px"
 										/>
 									) : state === "finished" ? (
-										<Box as={GrFormCheckmark} size="32px" />
+										<Box as={GrFormCheckmark} boxSize="32px" />
 									) : (
 										uploadProgress[file.name]?.percentage
 									)}
@@ -188,7 +189,7 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
 				<ModalFooter>
 					{uploadState === "finished" ? (
 						<Button
-							variantColor="red"
+							colorScheme="red"
 							mr={3}
 							onClick={closeFileUploader}
 						>
@@ -196,7 +197,7 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
 						</Button>
 					) : (
 						<Button
-							variantColor="teal"
+							colorScheme="teal"
 							mr={3}
 							onClick={uploadFiles}
 							isLoading={uploadState === "uploading"}

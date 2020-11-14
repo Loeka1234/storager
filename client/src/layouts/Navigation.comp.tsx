@@ -2,16 +2,14 @@ import {
 	Box,
 	Button,
 	Flex,
-	Icon,
 	Menu,
 	MenuButton,
 	MenuDivider,
 	MenuGroup,
 	MenuItem,
 	MenuList,
-	PseudoBox,
 	Text,
-} from "@chakra-ui/core";
+} from "@chakra-ui/react";
 import { Link } from "react-router-dom";
 import React, { useState } from "react";
 import { BORDER_STYLE, NAVIGATION_WIDTH } from "../constants";
@@ -25,6 +23,7 @@ import { IconType } from "react-icons/lib";
 import { useHistory } from "react-router-dom";
 import { FileUploader } from "../components/FileUploader/FileUploader.comp";
 import { UsedStorage } from "../components/UsedStorage.comp";
+import { AddIcon } from "@chakra-ui/icons";
 
 export interface NavigationProps {}
 
@@ -47,7 +46,7 @@ export const Navigation: React.FC<NavigationProps> = () => {
 			>
 				<Menu>
 					<MenuButton as={Button} borderRadius={5} mt={4} ml={4}>
-						<Icon name="add" mr={2} color="teal.500" />
+						<AddIcon mr={2} color="teal.500" />
 						New
 					</MenuButton>
 					<MenuList placement="bottom">
@@ -55,7 +54,7 @@ export const Navigation: React.FC<NavigationProps> = () => {
 							<MenuItem>
 								<Box
 									as={AiOutlineFolderAdd}
-									size="22px"
+									boxSize="22px"
 									mr={1}
 									color="teal.500"
 								/>
@@ -67,7 +66,7 @@ export const Navigation: React.FC<NavigationProps> = () => {
 							<MenuItem onClick={() => setOpenFileUploader(true)}>
 								<Box
 									as={AiOutlineFileAdd}
-									size="22px"
+									boxSize="22px"
 									mr={1}
 									color="teal.500"
 								/>
@@ -76,7 +75,7 @@ export const Navigation: React.FC<NavigationProps> = () => {
 							<MenuItem>
 								<Box
 									as={AiOutlineFolderAdd}
-									size="22px"
+									boxSize="22px"
 									mr={1}
 									color="teal.500"
 								/>
@@ -114,33 +113,34 @@ const NavItem: React.FC<{
 
 	return (
 		<Link to={url}>
-			<PseudoBox
+			<Flex
 				_hover={{ bg: "gray.200" }}
 				transition="all .3s ease-in-out"
+				align="center"
+				h="40px"
+				position="relative"
 			>
-				<Flex align="center" h="40px" position="relative">
-					{history.location.pathname === url && (
-						<Box
-							position="absolute"
-							left={0}
-							top={0}
-							bottom={0}
-							w={1}
-							backgroundColor="teal.400"
-						/>
-					)}
-					<Box as={icon} size="32px" ml={4} mr={2} />
-					<Text
-						color={
-							history.location.pathname === url
-								? "teal.400"
-								: "gray.900"
-						}
-					>
-						{text}
-					</Text>
-				</Flex>
-			</PseudoBox>
+				{history.location.pathname === url && (
+					<Box
+						position="absolute"
+						left={0}
+						top={0}
+						bottom={0}
+						w={1}
+						backgroundColor="teal.400"
+					/>
+				)}
+				<Box as={icon} boxSize="32px" ml={4} mr={2} />
+				<Text
+					color={
+						history.location.pathname === url
+							? "teal.400"
+							: "gray.900"
+					}
+				>
+					{text}
+				</Text>
+			</Flex>
 		</Link>
 	);
 };

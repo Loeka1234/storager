@@ -1,4 +1,4 @@
-import { Box, Flex } from "@chakra-ui/core";
+import { Box, Flex } from "@chakra-ui/react";
 import React, { useRef, useState } from "react";
 import { AiOutlineCloudUpload } from "react-icons/ai";
 
@@ -76,7 +76,7 @@ export const FileUploaderDropArea: React.FC<FileUploaderDropAreaProps> = ({
 				ref={fileInputRef}
 				onChange={handleFilesAdded}
 			/>
-			<Box as={AiOutlineCloudUpload} opacity={0.3} size="64px" />
+			<Box as={AiOutlineCloudUpload} opacity={0.3} boxSize="64px" />
 			<span>Upload Files</span>
 		</Flex>
 	);

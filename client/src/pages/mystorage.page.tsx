@@ -1,4 +1,4 @@
-import { Flex } from "@chakra-ui/core";
+import { Flex } from "@chakra-ui/react";
 import { FileList } from "../components/FileList.comp";
 import React from "react";
 

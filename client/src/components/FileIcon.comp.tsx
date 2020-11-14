@@ -14,7 +14,7 @@ import {
 import { DiJava } from "react-icons/di";
 import { SiMidi } from "react-icons/si";
 import { ImFileVideo } from "react-icons/im";
-import { Box, BoxProps } from "@chakra-ui/core";
+import { Box, BoxProps } from "@chakra-ui/react";
 
 type FileIconProps = BoxProps & {
 	mimeType: string;

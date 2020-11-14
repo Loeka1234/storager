@@ -6,7 +6,7 @@ import {
   FormLabel,
   Input,
   useToast,
-} from "@chakra-ui/core";
+} from "@chakra-ui/react";
 import React, { useContext, useState } from "react";
 import axios, { AxiosError } from "axios";
 import { useHistory } from "react-router-dom";
@@ -80,7 +80,7 @@ const LoginPage: React.FC = () => {
               value={password}
             />
           </FormControl>
-          <Button mt={5} variantColor="teal" type="submit" isLoading={loading}>
+          <Button mt={5} colorScheme="teal" type="submit" isLoading={loading}>
             Login
           </Button>
         </form>

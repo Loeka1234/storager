@@ -1,9 +1,11 @@
 import {
 	BaseEntity,
 	Column,
+	CreateDateColumn,
 	Entity,
 	ManyToOne,
 	PrimaryGeneratedColumn,
+	UpdateDateColumn,
 } from "typeorm";
 import { ColumnNumericTransformer } from "../transformers/ColumnNumericTransformer";
 import { User } from "./User";
@@ -32,6 +34,12 @@ export class File extends BaseEntity {
 		transformer: new ColumnNumericTransformer(),
 	}) // Size in KB
 	size!: number;
+
+	@CreateDateColumn()
+	createdAt: Date;
+
+	@UpdateDateColumn()
+	updatedAt: Date;
 
 	@ManyToOne(() => User, user => user.files, { nullable: false })
 	user!: User;

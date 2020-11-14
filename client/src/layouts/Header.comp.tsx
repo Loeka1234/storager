@@ -8,7 +8,7 @@ import {
 	Heading,
 	Input,
 	Text,
-} from "@chakra-ui/core";
+} from "@chakra-ui/react";
 import { Link } from "react-router-dom";
 import { UserContext } from "../contexts/UserContext";
 
@@ -22,7 +22,7 @@ export const Header: React.FC<HeaderProps> = () => {
 	return (
 		<Flex
 			w="100%"
-			height={NAVBAR_HEIGHT}
+			height={`${NAVBAR_HEIGHT}px`}
 			border={BORDER_STYLE}
 			justify="space-between"
 			align="center"

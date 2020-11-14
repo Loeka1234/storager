@@ -16,10 +16,14 @@ import path from "path";
 import fs from "fs";
 import { File } from "../entities/File";
 import { promisify } from "util";
-import { Max, Min } from "class-validator";
 import { getConnection, getRepository } from "typeorm";
 import { bytesToKB } from "./../utils/bytesToKB";
 import { User } from "../entities/User";
+import {
+	CursorPaginatedByDateQueryParams,
+	CursorPaginationQueryParams,
+	OffsetPaginationQueryParams,
+} from "./FileContoller.params";
 
 const storage = multer.diskStorage({
 	destination: function (req, _, cb) {
@@ -39,20 +43,6 @@ const storage = multer.diskStorage({
 const upload = multer({
 	storage,
 });
-
-class DefaultPaginationQueryParams {
-	@Min(1)
-	@Max(50)
-	limit: number;
-}
-class CursorPaginationQueryParams extends DefaultPaginationQueryParams {
-	"cursor-realName"?: string;
-	"cursor-fileName"?: string;
-}
-
-class OffsetPaginationQueryParams extends DefaultPaginationQueryParams {
-	offset?: number;
-}
 
 @JsonController("/file")
 export class FileController {
@@ -210,6 +200,58 @@ export class FileController {
 			);
 			res.status(500).json({
 				error: "Something went wrong while getting filemetadata.",
+			});
+		}
+	}
+
+	// TODO: FIX THIS
+	@Get("/recent-metadata")
+	@Authorized()
+	async recentMetadataNextPage(
+		@CurrentUser() user: SessionUser,
+		@QueryParams() params: CursorPaginatedByDateQueryParams,
+		@Res() res: Response
+	) {
+		try {
+			if (
+				(params["cursor-fileName"] && !params["cursor-updatedAt"]) ||
+				(params["cursor-updatedAt"] && !params["cursor-fileName"])
+			)
+				return res.status(400).json({
+					error:
+						"Params can not include one of 'cursor-fileName' and 'cursor-updatedAt'",
+				});
+
+			let meta = getConnection()
+				.createQueryBuilder()
+				.select(
+					'"fileName", "realName", "mimeType", "updatedAt", "size"'
+				)
+				.from(File, "file")
+				.where('"userId" = :id', { id: user.id })
+				.orderBy('("updatedAt", "fileName")', "DESC")
+				.limit(params.limit);
+
+			if (params["cursor-fileName"] && params["cursor-updatedAt"])
+				meta = meta.andWhere(
+					'(:updatedAt, :fileName) > ("updatedAt", "fileName")',
+					{
+						updatedAt: new Date(params["cursor-updatedAt"]),
+						fileName: params["cursor-fileName"],
+					}
+				);
+
+			// TODO: Size has te be converted from a string to a float, create a better way to handle this as size should be a float
+			return await meta.execute().then((data: File[]) =>
+				data.map(el => ({
+					...el,
+					size: parseFloat((el.size as unknown) as string),
+				}))
+			);
+		} catch (err) {
+			console.log("Error while getting recent metadata: ", err);
+			return res.status(500).json({
+				error: "Could not get recent filemetadata.",
 			});
 		}
 	}

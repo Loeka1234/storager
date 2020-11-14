@@ -1,4 +1,4 @@
-import { Text, Box, Progress } from "@chakra-ui/core";
+import { Text, Box, Progress } from "@chakra-ui/react";
 import * as React from "react";
 import { UserContext } from "../contexts/UserContext";
 import { displayStorage } from "./../utils/displayUsedStorage";
@@ -19,7 +19,7 @@ export const UsedStorage: React.FC = () => {
 			<Progress
 				w="100%"
 				value={percentage}
-				color={
+				colorScheme={
 					percentage < 60
 						? "teal"
 						: percentage < 80

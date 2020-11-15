@@ -16,7 +16,7 @@ export const PrivateRoute: React.FC<PrivateRouteProps> = ({
   useStorageLayout = false,
   ...rest
 }) => {
-  const [user] = useContext(UserContext)!;
+  const [user] = useContext(UserContext)!.user;
 
   let Comp: any;
   if (useStorageLayout) Comp = StorageLayout;

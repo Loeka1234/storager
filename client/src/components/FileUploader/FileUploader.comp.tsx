@@ -11,6 +11,7 @@ import {
 	ModalHeader,
 	ModalOverlay,
 	useToast,
+	Icon,
 } from "@chakra-ui/react";
 import React, { useContext, useState } from "react";
 import { FileUploaderDropArea } from "./FileUploaderDropArea";
@@ -51,7 +52,7 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
 		UPLOAD_PROGRESS_INITIAL_STATE
 	);
 	const { reset: resetFileList } = useContext(FileListContext)!;
-	const [, setUser] = useContext(UserContext)!;
+	const [, setUser] = useContext(UserContext)!.user;
 	const toast = useToast();
 
 	const uploadFiles = () => {
@@ -167,18 +168,21 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
 									align="center"
 									w="100%"
 								>
-									<Text>{file.name}</Text>
+									<Text isTruncated>{file.name}</Text>
 									{state === "error" ? (
-										<Box
+										<Icon
 											as={BiErrorCircle}
 											color="red"
-											w="32px"
-											z="32px"
+											boxSize="32px"
 										/>
 									) : state === "finished" ? (
-										<Box as={GrFormCheckmark} boxSize="32px" />
+										<Icon
+											as={GrFormCheckmark}
+											boxSize="32px"
+										/>
 									) : (
-										uploadProgress[file.name]?.percentage
+										(uploadProgress[file.name]
+											?.percentage || 0) + "%"
 									)}
 								</Flex>
 							) : null;

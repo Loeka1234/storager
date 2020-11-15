@@ -4,7 +4,7 @@ import { UserContext } from "../contexts/UserContext";
 import { displayStorage } from "./../utils/displayUsedStorage";
 
 export const UsedStorage: React.FC = () => {
-	const [user] = React.useContext(UserContext)!;
+	const [user] = React.useContext(UserContext)!.user;
 
 	if (!user) throw new Error("UsedStorage component has no user.");
 

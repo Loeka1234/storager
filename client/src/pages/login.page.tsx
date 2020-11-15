@@ -17,7 +17,7 @@ import { fetchUser } from './../utils/fetchUser';
 const LoginPage: React.FC = () => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-  const [, setUser] = useContext(UserContext)!;
+  const [, setUser] = useContext(UserContext)!.user;
   const history = useHistory();
   const [loading, setLoading] = useState(false);
   const toast = useToast();

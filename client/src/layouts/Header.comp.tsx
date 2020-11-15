@@ -6,16 +6,22 @@ import {
 	Button,
 	Flex,
 	Heading,
+	Icon,
 	Input,
+	Menu,
+	MenuButton,
+	MenuItem,
+	MenuList,
 	Text,
 } from "@chakra-ui/react";
-import { Link } from "react-router-dom";
 import { UserContext } from "../contexts/UserContext";
+import { CgLogOut } from "react-icons/cg";
 
 export interface HeaderProps {}
 
 export const Header: React.FC<HeaderProps> = () => {
-	const [user] = useContext(UserContext)!;
+	const [user] = useContext(UserContext)!.user;
+	const { logout } = useContext(UserContext)!;
 
 	if (!user) return null;
 
@@ -40,9 +46,22 @@ export const Header: React.FC<HeaderProps> = () => {
 			</Flex>
 			<Flex align="center">
 				<Text fontSize="xl">{user.username}</Text>
-				<Link to="/profile">
-					<Avatar as="button" name={user.username} ml={2} mr={4} />
-				</Link>
+				<Menu>
+					<MenuButton>
+						<Avatar
+							as="button"
+							name={user.username}
+							ml={2}
+							mr={4}
+						/>
+					</MenuButton>
+					<MenuList>
+						<MenuItem onClick={logout}>
+							<Icon as={CgLogOut} boxSize="30px" />
+							<Text ml={1}>Logout</Text>
+						</MenuItem>
+					</MenuList>
+				</Menu>
 			</Flex>
 		</Flex>
 	);

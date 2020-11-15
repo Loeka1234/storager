@@ -49,7 +49,6 @@ export const Header: React.FC<HeaderProps> = () => {
 				<Menu>
 					<MenuButton>
 						<Avatar
-							as="button"
 							name={user.username}
 							ml={2}
 							mr={4}

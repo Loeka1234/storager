@@ -1,9 +1,8 @@
-import React from "react";
+import React, { useContext } from "react";
 import {
 	AiOutlineFileImage,
 	AiOutlineFile,
 	AiOutlineFileWord,
-	AiOutlineFieldBinary,
 	AiOutlineFilePdf,
 	AiOutlineFileZip,
 	AiOutlineSound,
@@ -15,24 +14,27 @@ import { DiJava } from "react-icons/di";
 import { SiMidi } from "react-icons/si";
 import { ImFileVideo } from "react-icons/im";
 import { Box, BoxProps } from "@chakra-ui/react";
+import { OptimizerContext } from "./../contexts/OptimizerContext";
 
 type FileIconProps = BoxProps & {
 	mimeType: string;
 };
 
 export const FileIcon: React.FC<FileIconProps> = ({ mimeType, ...rest }) => {
-	return <Box as={getFileIcon(mimeType)} {...rest} />;
+	const { addNotImplementedFileIcon } = useContext(OptimizerContext)!;
+
+	return (
+		<Box as={getFileIcon(mimeType, addNotImplementedFileIcon)} {...rest} />
+	);
 };
 
-const getFileIcon = (mimeType: string) => {
+const getFileIcon = (mimeType: string, onErr?: (s: string) => void) => {
 	switch (mimeType) {
 		case "image/png":
 		case "image/jpeg":
 			return AiOutlineFileImage;
 		case "application/msword":
 			return AiOutlineFileWord;
-		case "application/octet-stream": // TODO: Fix better icon
-			return AiOutlineFieldBinary;
 		case "application/pdf":
 			return AiOutlineFilePdf;
 		case "application/x-java-archive":
@@ -61,7 +63,7 @@ const getFileIcon = (mimeType: string) => {
 		case "video/mp4":
 			return ImFileVideo;
 		default:
-			console.log(`Mimetype "${mimeType}" has no icon.`); // TODO: Send to server to improve user experience
+			if (onErr) onErr(mimeType);
 			return AiOutlineFile;
 	}
 };

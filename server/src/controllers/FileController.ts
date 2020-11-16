@@ -1,14 +1,14 @@
 import {
-	Authorized,
-	CurrentUser,
-	Get,
-	JsonController,
-	Post,
-	QueryParam,
-	QueryParams,
-	Req,
-	Res,
-	UseBefore,
+  Authorized,
+  CurrentUser,
+  Get,
+  JsonController,
+  Post,
+  QueryParam,
+  QueryParams,
+  Req,
+  Res,
+  UseBefore,
 } from "routing-controllers";
 import { Request, Response } from "express";
 import multer from "multer";
@@ -20,239 +20,226 @@ import { getConnection, getRepository } from "typeorm";
 import { bytesToKB } from "./../utils/bytesToKB";
 import { User } from "../entities/User";
 import {
-	CursorPaginatedByDateQueryParams,
-	CursorPaginationQueryParams,
-	OffsetPaginationQueryParams,
+  CursorPaginatedByDateQueryParams,
+  CursorPaginationQueryParams,
+  OffsetPaginationQueryParams,
 } from "./FileContoller.params";
 
 const storage = multer.diskStorage({
-	destination: function (req, _, cb) {
-		if (!req.session || !req.session.user)
-			return cb(new Error("No user in multer destination."), "");
+  destination: function (req, _, cb) {
+    if (!req.session || !req.session.user)
+      return cb(new Error("No user in multer destination."), "");
 
-		const storagePath = path.join(
-			process.cwd(),
-			"storage",
-			(req.session.user as SessionUser).username
-		);
-		if (!fs.existsSync(storagePath)) fs.mkdirSync(storagePath);
-		cb(null, storagePath);
-	},
+    const storagePath = path.join(
+      process.cwd(),
+      "storage",
+      (req.session.user as SessionUser).username
+    );
+    if (!fs.existsSync(storagePath)) fs.mkdirSync(storagePath);
+    cb(null, storagePath);
+  },
 });
 
 const upload = multer({
-	storage,
+  storage,
 });
 
 @JsonController("/file")
 export class FileController {
-	@Post("/upload")
-	@UseBefore(upload.single("file"))
-	@Authorized()
-	async upload(
-		@Req() req: Request,
-		@Res() res: Response,
-		@CurrentUser() user: SessionUser
-	) {
-		try {
-			const { filename, originalname, mimetype, size } = req.file; // File size is in bytes
-			const sizeInKB = bytesToKB(size);
+  @Post("/upload")
+  @UseBefore(upload.single("file"))
+  @Authorized()
+  async upload(
+    @Req() req: Request,
+    @Res() res: Response,
+    @CurrentUser() user: SessionUser
+  ) {
+    try {
+      const { filename, originalname, mimetype, size } = req.file; // File size is in bytes
+      const sizeInKB = bytesToKB(size);
 
-			const userInDB = await User.findOne({ id: parseInt(user.id) });
-			if (typeof userInDB?.usedStorage === "undefined")
-				return res
-					.status(500)
-					.json({ error: "Internal server error." });
+      const userInDB = await User.findOne({ id: parseInt(user.id) });
+      if (typeof userInDB?.usedStorage === "undefined")
+        return res.status(500).json({ error: "Internal server error." });
 
-			if (userInDB?.usedStorage + sizeInKB > userInDB.maxStorage)
-				return res
-					.status(400)
-					.json({ error: "You don't have enough storage." });
+      if (userInDB?.usedStorage + sizeInKB > userInDB.maxStorage)
+        return res
+          .status(400)
+          .json({ error: "You don't have enough storage." });
 
-			// Storing the file
-			await File.insert({
-				fileName: filename,
-				realName: originalname,
-				mimeType: mimetype,
-				user: () => user.id,
-				path: path.join("storage", user.username, filename), // Fixed this
-				size: sizeInKB,
-			});
+      // Storing the file
+      await File.insert({
+        fileName: filename,
+        realName: originalname,
+        mimeType: mimetype,
+        user: () => user.id,
+        path: path.join("storage", user.username, filename), // Fixed this
+        size: sizeInKB,
+      });
 
-			// Increment used storage
-			await getRepository(User).increment(
-				{ id: parseInt(user.id) },
-				"usedStorage",
-				sizeInKB
-			);
+      // Increment used storage
+      await getRepository(User).increment(
+        { id: parseInt(user.id) },
+        "usedStorage",
+        sizeInKB
+      );
 
-			return res.status(200).json({
-				success: "Successfully uploaded file.",
-				fileSizeUploaded: sizeInKB,
-			});
-		} catch (err) {
-			console.log("Error while saving file to database: ", err);
-			return res.status(500).json({ error: "Error while saving file." });
-		}
-	}
+      return res.status(200).json({
+        success: "Successfully uploaded file.",
+        fileSizeUploaded: sizeInKB,
+      });
+    } catch (err) {
+      console.log("Error while saving file to database: ", err);
+      return res.status(500).json({ error: "Error while saving file." });
+    }
+  }
 
-	@Get("/download")
-	@Authorized()
-	async download(
-		@Res() res: Response,
-		@CurrentUser() user: SessionUser,
-		@QueryParam("fileName") fileName: string
-	) {
-		const file = await File.findOne({
-			where: { fileName },
-			relations: ["user"],
-		});
+  @Get("/download")
+  @Authorized()
+  async download(
+    @Res() res: Response,
+    @CurrentUser() user: SessionUser,
+    @QueryParam("fileName") fileName: string
+  ) {
+    const file = await File.findOne({
+      where: { fileName },
+      relations: ["user"],
+    });
 
-		if (file?.user.id != parseInt(user.id))
-			return res.status(401).json({
-				error: "The file you're trying to download does not exists.",
-			});
+    if (file?.user.id != parseInt(user.id))
+      return res.status(401).json({
+        error: "The file you're trying to download does not exists.",
+      });
 
-		try {
-			await promisify<string, void>(res.sendFile.bind(res))(
-				path.join(process.cwd(), file.path)
-			);
-			return res;
-		} catch (err) {
-			console.log("Error while downloading file ", err);
-			return res
-				.status(500)
-				.json({ error: "Error while downloading file." });
-		}
-	}
+    try {
+      await promisify<string, void>(res.sendFile.bind(res))(
+        path.join(process.cwd(), file.path)
+      );
+      return res;
+    } catch (err) {
+      console.log("Error while downloading file ", err);
+      return res.status(500).json({ error: "Error while downloading file." });
+    }
+  }
 
-	// TODO: Update frontend with cursor paginated metadata
-	@Get("/cursor-paginated-metadata")
-	@Authorized()
-	async getFileMetadata(
-		@CurrentUser() user: SessionUser,
-		@QueryParams() params: CursorPaginationQueryParams,
-		@Res() res: Response
-	) {
-		try {
-			if (
-				(params["cursor-fileName"] && !params["cursor-realName"]) ||
-				(params["cursor-realName"] && !params["cursor-fileName"])
-			)
-				return res.status(400).json({
-					error:
-						"Params should include 'cursor-fileName' and 'cursor-realName'",
-				});
+  // TODO: Update frontend with cursor paginated metadata
+  @Get("/cursor-paginated-metadata")
+  @Authorized()
+  async getFileMetadata(
+    @CurrentUser() user: SessionUser,
+    @QueryParams() params: CursorPaginationQueryParams,
+    @Res() res: Response
+  ) {
+    try {
+      if (
+        (params["cursor-fileName"] && !params["cursor-realName"]) ||
+        (params["cursor-realName"] && !params["cursor-fileName"])
+      )
+        return res.status(400).json({
+          error:
+            "Params should include 'cursor-fileName' and 'cursor-realName'",
+        });
 
-			let meta = getConnection()
-				.createQueryBuilder()
-				.select('"fileName", "realName", "mimeType"')
-				.from(File, "file")
-				.where('"userId" = :id', { id: user.id })
-				.orderBy('("realName", "fileName")')
-				.limit(params.limit);
+      let meta = getConnection()
+        .createQueryBuilder()
+        .select('"fileName", "realName", "mimeType", "updatedAt", "size"')
+        .from(File, "file")
+        .where('"userId" = :id', { id: user.id })
+        .orderBy('("realName", "fileName")')
+        .limit(params.limit);
 
-			if (params["cursor-fileName"] && params["cursor-realName"]) {
-				meta = meta.andWhere(
-					'(:realName, :fileName) < ("realName", "fileName")',
-					{
-						realName: params["cursor-realName"],
-						fileName: params["cursor-fileName"],
-					}
-				);
-			}
+      if (params["cursor-fileName"] && params["cursor-realName"]) {
+        meta = meta.andWhere(
+          '(:realName, :fileName) < ("realName", "fileName")',
+          {
+            realName: params["cursor-realName"],
+            fileName: params["cursor-fileName"],
+          }
+        );
+      }
 
-			return await meta.execute();
-		} catch (err) {
-			console.log(
-				"Error while getting cursor paginated filemetadata: ",
-				err
-			);
-			return res.status(500).json({
-				error: "Something went wrong while getting filemetadata.",
-			});
-		}
-	}
+      return (await meta.execute()) as FileMetadata[];
+    } catch (err) {
+      console.log("Error while getting cursor paginated filemetadata: ", err);
+      return res.status(500).json({
+        error: "Something went wrong while getting filemetadata.",
+      });
+    }
+  }
 
-	// TODO: fix frontend url
-	@Get("/offset-paginated-metadata")
-	@Authorized()
-	async getFileMetadata2(
-		@CurrentUser() user: SessionUser,
-		@QueryParams() params: OffsetPaginationQueryParams,
-		@Res() res: Response
-	) {
-		try {
-			let meta = getConnection()
-				.createQueryBuilder()
-				.select('"fileName", "realName", "mimeType"')
-				.from(File, "file")
-				.where('"userId" = :id', { id: user.id })
-				.orderBy('"realName"')
-				.limit(params.limit)
-				.offset(params.offset ? params.offset : 0);
+  // TODO: fix frontend url
+  @Get("/offset-paginated-metadata")
+  @Authorized()
+  async getFileMetadata2(
+    @CurrentUser() user: SessionUser,
+    @QueryParams() params: OffsetPaginationQueryParams,
+    @Res() res: Response
+  ) {
+    try {
+      let meta = getConnection()
+        .createQueryBuilder()
+        .select('"fileName", "realName", "mimeType", "updatedAt", "size"')
+        .from(File, "file")
+        .where('"userId" = :id', { id: user.id })
+        .orderBy('"realName"')
+        .limit(params.limit)
+        .offset(params.offset ? params.offset : 0);
 
-			return await meta.execute();
-		} catch (err) {
-			console.log(
-				"Error while getting offset paginated filemetadata: ",
-				err
-			);
-			res.status(500).json({
-				error: "Something went wrong while getting filemetadata.",
-			});
-		}
-	}
+      return (await meta.execute()) as FileMetadata[];
+    } catch (err) {
+      console.log("Error while getting offset paginated filemetadata: ", err);
+      return res.status(500).json({
+        error: "Something went wrong while getting filemetadata.",
+      });
+    }
+  }
 
-	// TODO: FIX THIS
-	@Get("/recent-metadata")
-	@Authorized()
-	async recentMetadataNextPage(
-		@CurrentUser() user: SessionUser,
-		@QueryParams() params: CursorPaginatedByDateQueryParams,
-		@Res() res: Response
-	) {
-		try {
-			if (
-				(params["cursor-fileName"] && !params["cursor-updatedAt"]) ||
-				(params["cursor-updatedAt"] && !params["cursor-fileName"])
-			)
-				return res.status(400).json({
-					error:
-						"Params can not include one of 'cursor-fileName' and 'cursor-updatedAt'",
-				});
+  @Get("/recent-metadata")
+  @Authorized()
+  async recentMetadataNextPage(
+    @CurrentUser() user: SessionUser,
+    @QueryParams() params: CursorPaginatedByDateQueryParams,
+    @Res() res: Response
+  ) {
+    try {
+      if (
+        (params["cursor-fileName"] && !params["cursor-updatedAt"]) ||
+        (params["cursor-updatedAt"] && !params["cursor-fileName"])
+      )
+        return res.status(400).json({
+          error:
+            "Params can not include one of 'cursor-fileName' and 'cursor-updatedAt'",
+        });
 
-			let meta = getConnection()
-				.createQueryBuilder()
-				.select(
-					'"fileName", "realName", "mimeType", "updatedAt", "size"'
-				)
-				.from(File, "file")
-				.where('"userId" = :id', { id: user.id })
-				.orderBy('("updatedAt", "fileName")', "DESC")
-				.limit(params.limit);
+      let meta = getConnection()
+        .createQueryBuilder()
+        .select('"fileName", "realName", "mimeType", "updatedAt", "size"')
+        .from(File, "file")
+        .where('"userId" = :id', { id: user.id })
+        .orderBy('("updatedAt", "fileName")', "DESC")
+        .limit(params.limit);
 
-			if (params["cursor-fileName"] && params["cursor-updatedAt"])
-				meta = meta.andWhere(
-					'(:updatedAt, :fileName) > ("updatedAt", "fileName")',
-					{
-						updatedAt: new Date(params["cursor-updatedAt"]),
-						fileName: params["cursor-fileName"],
-					}
-				);
+      if (params["cursor-fileName"] && params["cursor-updatedAt"])
+        meta = meta.andWhere(
+          '(:updatedAt, :fileName) > ("updatedAt", "fileName")',
+          {
+            updatedAt: new Date(params["cursor-updatedAt"]),
+            fileName: params["cursor-fileName"],
+          }
+        );
 
-			// TODO: Size has te be converted from a string to a float, create a better way to handle this as size should be a float
-			return await meta.execute().then((data: File[]) =>
-				data.map(el => ({
-					...el,
-					size: parseFloat((el.size as unknown) as string),
-				}))
-			);
-		} catch (err) {
-			console.log("Error while getting recent metadata: ", err);
-			return res.status(500).json({
-				error: "Could not get recent filemetadata.",
-			});
-		}
-	}
+      // TODO: Size has te be converted from a string to a float, create a better way to handle this as size should be a float
+      return (await meta.execute().then((data: File[]) =>
+        data.map(el => ({
+          ...el,
+          size: parseFloat((el.size as unknown) as string),
+        }))
+      )) as FileMetadata[];
+    } catch (err) {
+      console.log("Error while getting recent metadata: ", err);
+      return res.status(500).json({
+        error: "Could not get recent filemetadata.",
+      });
+    }
+  }
 }

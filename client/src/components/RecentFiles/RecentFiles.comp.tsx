@@ -27,8 +27,8 @@ export const RecentFiles: React.FC<RecentFilesProps> = () => {
   const toast = useToast();
 
   useEffect(() => {
-    initialFetch();
-  }, [initialFetch]);
+    if (!files) initialFetch();
+  }, [initialFetch, files]);
 
   const handleDownload = async (
     fileName: string,

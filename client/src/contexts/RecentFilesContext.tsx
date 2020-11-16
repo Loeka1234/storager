@@ -1,4 +1,4 @@
-import React, { createContext, useState } from "react";
+import React, { createContext, useCallback, useState } from "react";
 import { getRecentFileMetadata } from "../requests/getRecentFileMetadata";
 
 const LIMIT = 20;
@@ -51,7 +51,7 @@ export const RecentFilesProvider: React.FC = ({ children }) => {
   );
   const [loading, setLoading] = useState<Loading>(LOADING_INIT_STATE);
 
-  const initialFetch = async () => {
+  const initialFetch = useCallback(async () => {
     try {
       const data = await getRecentFileMetadata(LIMIT);
 
@@ -76,7 +76,7 @@ export const RecentFilesProvider: React.FC = ({ children }) => {
     } catch (err) {
       console.log("Something went wrong while getting recent files: ", err);
     }
-  };
+  }, []);
 
   const prevPage = async () => {
     setLoading({

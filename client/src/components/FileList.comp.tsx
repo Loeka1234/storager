@@ -1,13 +1,5 @@
 import React, { useContext, useEffect } from "react";
-import {
-  Button,
-  Flex,
-  Grid,
-  Text,
-  useToast,
-  Image,
-  Box,
-} from "@chakra-ui/react";
+import { Button, Flex, Grid, Text, useToast, Image } from "@chakra-ui/react";
 import { FileIcon } from "./FileIcon.comp";
 import { FileListContext } from "../contexts/FileListContext";
 import { defaultErrorToastKeys } from "./../utils/defaultErrorToastKeys";
@@ -86,7 +78,7 @@ export const FileList: React.FC<FileListProps> = () => {
               )}
             </Flex>
             <Flex justify="flex-start" align="center" h="50px" w="100%">
-              <FileIcon mimeType={mimeType} w="32px" h="32px" mx={2} />
+              <FileIcon mimeType={mimeType} boxSize="32px" minW="32px" mx={1} />
               <Text mr={2} isTruncated>
                 {realName}
               </Text>

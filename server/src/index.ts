@@ -11,6 +11,7 @@ import redis from "redis";
 import connectRedis from "connect-redis";
 import express from "express";
 import cors from "cors";
+import morgan from "morgan";
 import { MeController } from "./controllers/MeController";
 import { FileController } from "./controllers/FileController";
 
@@ -58,6 +59,8 @@ const main = async () => {
         origin: CORS,
       })
     );
+
+    app.use(morgan(__prod__ ? "tiny" : "dev"));
 
     useExpressServer(app, {
       controllers: [

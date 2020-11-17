@@ -6,4 +6,5 @@ interface FileMetadata {
   mimeType: string;
   updatedAt: string;
   size: number;
+  thumbnail?: string;
 }

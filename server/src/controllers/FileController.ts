@@ -25,8 +25,6 @@ import {
   GetThumbnailParams,
   OffsetPaginationQueryParams,
 } from "./FileContoller.params";
-import { createBrotliCompress } from "zlib";
-import sharp from "sharp";
 import { generateThumbnail } from "../utils/generateThumbnail";
 import { FILE_METADATA_SELECT } from "../constants";
 

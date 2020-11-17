@@ -27,11 +27,11 @@ import {
 } from "./FileContoller.params";
 import { generateThumbnail } from "../utils/generateThumbnail";
 import { FILE_METADATA_SELECT } from "../constants";
+import { MulterCheckAvailableSpace } from "../middlewares/MulterCheckAvailableSpace.middleware";
 
 const storage = multer.diskStorage({
   destination: function (req, _, cb) {
-    if (!req.session || !req.session.user)
-      return cb(new Error("No user in multer destination."), "");
+    if (!req.session || !req.session.user) return cb(new Error("no user"), "");
 
     const storagePath = path.join(
       process.cwd(),
@@ -47,10 +47,26 @@ const upload = multer({
   storage,
 });
 
+const uploadMiddleware = (
+  req: Request,
+  res: Response,
+  next?: (err?: any) => any
+) => {
+  upload.single("file")(req, res, (err: any) => {
+    if (err?.message === "no user")
+      return res.status(401).json({ error: "Not authenticated." });
+    else if (err)
+      return res.status(500).json({ error: "Internal server error." });
+
+    if (next) return next();
+  });
+};
+
 @JsonController("/file")
 export class FileController {
   @Post("/upload")
-  @UseBefore(upload.single("file"))
+  @UseBefore(MulterCheckAvailableSpace) // Don't change place
+  @UseBefore(uploadMiddleware) // Don't change place
   @Authorized()
   async upload(
     @Req() req: Request,
@@ -66,15 +82,6 @@ export class FileController {
         path: filepath,
       } = req.file; // File size is in bytes
       const sizeInKB = bytesToKB(size);
-
-      const userInDB = await User.findOne({ id: parseInt(user.id) });
-      if (typeof userInDB?.usedStorage === "undefined")
-        return res.status(500).json({ error: "Internal server error." });
-
-      if (userInDB?.usedStorage + sizeInKB > userInDB.maxStorage)
-        return res
-          .status(400)
-          .json({ error: "You don't have enough storage." });
 
       // Storing the file
       await File.insert({

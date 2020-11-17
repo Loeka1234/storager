@@ -22,8 +22,13 @@ import { User } from "../entities/User";
 import {
   CursorPaginatedByDateQueryParams,
   CursorPaginationQueryParams,
+  GetThumbnailParams,
   OffsetPaginationQueryParams,
 } from "./FileContoller.params";
+import { createBrotliCompress } from "zlib";
+import sharp from "sharp";
+import { generateThumbnail } from "../utils/generateThumbnail";
+import { FILE_METADATA_SELECT } from "../constants";
 
 const storage = multer.diskStorage({
   destination: function (req, _, cb) {
@@ -55,7 +60,13 @@ export class FileController {
     @CurrentUser() user: SessionUser
   ) {
     try {
-      const { filename, originalname, mimetype, size } = req.file; // File size is in bytes
+      const {
+        filename,
+        originalname,
+        mimetype,
+        size,
+        path: filepath,
+      } = req.file; // File size is in bytes
       const sizeInKB = bytesToKB(size);
 
       const userInDB = await User.findOne({ id: parseInt(user.id) });
@@ -83,6 +94,19 @@ export class FileController {
         "usedStorage",
         sizeInKB
       );
+
+      switch (mimetype) {
+        case "image/jpeg":
+        case "image/png":
+          await generateThumbnail(filepath, user.username, filename);
+          await File.update(
+            { fileName: filename },
+            { thumbnail: filename + ".webp" }
+          );
+          break;
+        default:
+          break;
+      }
 
       return res.status(200).json({
         success: "Successfully uploaded file.",
@@ -142,7 +166,7 @@ export class FileController {
 
       let meta = getConnection()
         .createQueryBuilder()
-        .select('"fileName", "realName", "mimeType", "updatedAt", "size"')
+        .select(FILE_METADATA_SELECT)
         .from(File, "file")
         .where('"userId" = :id', { id: user.id })
         .orderBy('("realName", "fileName")')
@@ -178,7 +202,7 @@ export class FileController {
     try {
       let meta = getConnection()
         .createQueryBuilder()
-        .select('"fileName", "realName", "mimeType", "updatedAt", "size"')
+        .select(FILE_METADATA_SELECT)
         .from(File, "file")
         .where('"userId" = :id', { id: user.id })
         .orderBy('"realName"')
@@ -213,7 +237,7 @@ export class FileController {
 
       let meta = getConnection()
         .createQueryBuilder()
-        .select('"fileName", "realName", "mimeType", "updatedAt", "size"')
+        .select(FILE_METADATA_SELECT)
         .from(File, "file")
         .where('"userId" = :id', { id: user.id })
         .orderBy('("updatedAt", "fileName")', "DESC")
@@ -240,6 +264,25 @@ export class FileController {
       return res.status(500).json({
         error: "Could not get recent filemetadata.",
       });
+    }
+  }
+
+  @Get("/thumbnail")
+  @Authorized()
+  async getThumbnail(
+    @Res() res: Response,
+    @CurrentUser() user: SessionUser,
+    @QueryParams() params: GetThumbnailParams
+  ) {
+    try {
+      // TODO: create reusable function
+      await promisify<string, void>(res.sendFile.bind(res))(
+        path.join(process.cwd(), "thumbnails", user.username, params.fileName)
+      );
+      return res;
+    } catch (err) {
+      console.log("Error while sending thumbnail: ", err);
+      return res.status(401).json({ error: "You can not access this file." });
     }
   }
 }

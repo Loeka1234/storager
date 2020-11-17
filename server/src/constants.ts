@@ -7,3 +7,6 @@ export const COOKIE_SECRET = process.env.COOKIE_SECRET || "dev";
 export const COOKIE_NAME = "sto";
 
 export const PG_UNIQUE_VIOLATION = 23505;
+
+export const FILE_METADATA_SELECT =
+  '"fileName", "realName", "mimeType", "updatedAt", "size", "thumbnail"';

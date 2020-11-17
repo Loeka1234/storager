@@ -18,3 +18,7 @@ export class CursorPaginatedByDateQueryParams extends DefaultPaginationQueryPara
 	"cursor-updatedAt"?: string;
 	"cursor-fileName"?: string;
 }
+
+export class GetThumbnailParams {
+	fileName: string;	
+}

@@ -14,8 +14,12 @@ export class MulterCheckAvailableSpace implements ExpressMiddlewareInterface {
       const sizeInKB = bytesToKB(size);
 
       const userInDB = await User.findOne({ id: req.session?.user?.id });
-      if (typeof userInDB?.usedStorage === "undefined")
+      if (typeof userInDB === "undefined")
+        return res.status(401).json({ error: "Unauthenticated." });
+      if (typeof userInDB?.usedStorage === "undefined") {
+        console.error("userInDB?.usedStorage is undefined");
         return res.status(500).json({ error: "Internal server error." });
+      }
 
       if (userInDB?.usedStorage + sizeInKB > userInDB.maxStorage)
         return res

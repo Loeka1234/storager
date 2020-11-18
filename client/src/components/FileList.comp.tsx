@@ -5,6 +5,8 @@ import { FileListContext } from "../contexts/FileListContext";
 import { defaultErrorToastKeys } from "./../utils/defaultErrorToastKeys";
 import { downloadFile } from "../requests/downloadFile";
 import { API_ENDPOINT } from "../constants";
+import { FilePreviewerContext } from "../contexts/FilePreviewerContext";
+import { thumbnailToURL } from "../utils/thumbnailToURL";
 
 export interface FileListProps {}
 
@@ -14,6 +16,7 @@ export const FileList: React.FC<FileListProps> = () => {
   const { initialFetch, fetchMore } = useContext(FileListContext)!;
   const { loading } = useContext(FileListContext)!;
   const toast = useToast();
+  const { previewFile } = useContext(FilePreviewerContext)!;
 
   useEffect(() => {
     initialFetch();
@@ -46,7 +49,7 @@ export const FileList: React.FC<FileListProps> = () => {
         gap={2}
         mt={2}
       >
-        {files?.map(({ realName, fileName, mimeType, thumbnail }) => (
+        {files?.map(({ realName, fileName, mimeType, thumbnail, ...rest }) => (
           <Flex
             backgroundColor="gray.200"
             transition="all .3s ease-in-out"
@@ -55,7 +58,12 @@ export const FileList: React.FC<FileListProps> = () => {
               backgroundColor: "gray.300",
             }}
             key={fileName}
-            onClick={() => handleDownload(fileName, mimeType, realName)}
+            onClick={() =>
+              previewFile(
+                { realName, fileName, mimeType, thumbnail, ...rest },
+                () => handleDownload(fileName, mimeType, realName)
+              )
+            }
             cursor="pointer"
             justify="center"
             align="center"
@@ -69,10 +77,7 @@ export const FileList: React.FC<FileListProps> = () => {
               overflow="hidden"
             >
               {thumbnail ? (
-                <Image
-                  w="100%"
-                  src={`${API_ENDPOINT}/file/thumbnail?fileName=${thumbnail}`}
-                />
+                <Image w="100%" src={thumbnailToURL(thumbnail)} />
               ) : (
                 <Text>No preview</Text>
               )}

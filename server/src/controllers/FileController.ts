@@ -28,6 +28,7 @@ import {
 import { generateThumbnail } from "../utils/generateThumbnail";
 import { FILE_METADATA_SELECT } from "../constants";
 import { MulterCheckAvailableSpace } from "../middlewares/MulterCheckAvailableSpace.middleware";
+import { v4 } from "uuid";
 
 const storage = multer.diskStorage({
   destination: function (req, _, cb) {
@@ -41,6 +42,9 @@ const storage = multer.diskStorage({
     if (!fs.existsSync(storagePath)) fs.mkdirSync(storagePath);
     cb(null, storagePath);
   },
+  filename: function (_, file, cb) {
+    return cb(null, v4() + path.extname(file.originalname));
+  },
 });
 
 const upload = multer({
@@ -53,6 +57,8 @@ const uploadMiddleware = (
   next?: (err?: any) => any
 ) => {
   upload.single("file")(req, res, (err: any) => {
+    if (err) console.log("Error after multer: ", err);
+
     if (err?.message === "no user")
       return res.status(401).json({ error: "Not authenticated." });
     else if (err)
@@ -141,6 +147,9 @@ export class FileController {
       });
 
     try {
+      // res.sendFile(path.join(process.cwd(), file.path), file.realName);
+      // await delay(3000);
+      // return res;
       await promisify<string, void>(res.sendFile.bind(res))(
         path.join(process.cwd(), file.path)
       );

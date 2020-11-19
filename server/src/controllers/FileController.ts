@@ -24,6 +24,7 @@ import {
   CursorPaginationQueryParams,
   GetThumbnailParams,
   OffsetPaginationQueryParams,
+  SearchParams,
 } from "./FileContoller.params";
 import { generateThumbnail } from "../utils/generateThumbnail";
 import { FILE_METADATA_SELECT } from "../constants";
@@ -112,7 +113,9 @@ export class FileController {
           await generateThumbnail(filepath, user.username, filename);
           await File.update(
             { fileName: filename },
-            { thumbnail: filename + ".webp" }
+            {
+              thumbnail: filename.replace(path.extname(filename), "") + ".webp",
+            }
           );
           break;
         default:
@@ -297,6 +300,40 @@ export class FileController {
     } catch (err) {
       console.log("Error while sending thumbnail: ", err);
       return res.status(401).json({ error: "You can not access this file." });
+    }
+  }
+
+  @Get("/search-metadata")
+  @Authorized()
+  async searchMetadata(
+    @Res() res: Response,
+    @CurrentUser() user: SessionUser,
+    @QueryParams() params: SearchParams
+  ) {
+    try {
+      const limit = params.limit || 50;
+
+      if (limit < 0 || limit > 100)
+        return res
+          .status(400)
+          .json({ error: "Limit should be between 0 and 100." });
+
+      let meta = getConnection()
+        .createQueryBuilder()
+        .select(FILE_METADATA_SELECT)
+        .from(File, "file")
+        .where('"userId" = :userId', { userId: user.id })
+        .andWhere(`"realName" LIKE :searchString`, {
+          searchString: `%${params.searchString}%`,
+        })
+        .limit(limit);
+
+      if (params.page) meta.offset(params.page * limit);
+
+      return await meta.execute();
+    } catch (err) {
+      console.log("Error while searching: ", err);
+      return res.status(500).json({ error: "Internal server error. " });
     }
   }
 }

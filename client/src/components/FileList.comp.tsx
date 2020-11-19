@@ -4,22 +4,29 @@ import { FileIcon } from "./FileIcon.comp";
 import { FileListContext } from "../contexts/FileListContext";
 import { defaultErrorToastKeys } from "./../utils/defaultErrorToastKeys";
 import { downloadFile } from "../requests/downloadFile";
-import { API_ENDPOINT } from "../constants";
 import { FilePreviewerContext } from "../contexts/FilePreviewerContext";
 import { thumbnailToURL } from "../utils/thumbnailToURL";
 
-export interface FileListProps {}
+export interface FileListProps {
+  files: FileMetadata[] | null;
+  newFilesToFetch: boolean;
+  initialFetch?: () => Promise<void>;
+  fetchMore: () => Promise<void>;
+  loading: boolean;
+}
 
-export const FileList: React.FC<FileListProps> = () => {
-  const [files] = useContext(FileListContext)!.fileState;
-  const [newFilesToFetch] = useContext(FileListContext)!.newFileState;
-  const { initialFetch, fetchMore } = useContext(FileListContext)!;
-  const { loading } = useContext(FileListContext)!;
+export const FileList: React.FC<FileListProps> = ({
+  files,
+  newFilesToFetch,
+  initialFetch,
+  fetchMore,
+  loading,
+}) => {
   const toast = useToast();
   const { previewFile } = useContext(FilePreviewerContext)!;
 
   useEffect(() => {
-    initialFetch();
+    if (initialFetch) initialFetch();
   }, [initialFetch]);
 
   const handleDownload = async (

@@ -22,6 +22,7 @@ import { UserContext } from "../../contexts/UserContext";
 import { BiErrorCircle } from "react-icons/bi";
 import { defaultErrorToastKeys } from "../../utils/defaultErrorToastKeys";
 import { RecentFilesContext } from "../../contexts/RecentFilesContext";
+import { SearchFilesContext } from "../../contexts/SearchFilesContext";
 
 interface UploadProgress {
   [key: string]: {
@@ -54,6 +55,7 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
   );
   const { reset: resetFileList } = useContext(FileListContext)!;
   const { reset: resetRecentFileList } = useContext(RecentFilesContext)!;
+  const { reset: resetSearchFiles } = useContext(SearchFilesContext)!;
   const [, setUser] = useContext(UserContext)!.user;
   const toast = useToast();
 
@@ -131,8 +133,9 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
 
   const closeFileUploader = () => {
     resetToInitialState();
-		resetFileList();
-		resetRecentFileList();
+    resetFileList();
+    resetRecentFileList();
+    resetSearchFiles(true);
     handleClose();
   };
 

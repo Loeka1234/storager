@@ -49,28 +49,32 @@ export const ImagePreviewer: React.FC<ImagePreviewerProps> = ({
       background="rgba(0, 0, 0, .7)"
       zIndex={100}
     >
-      <Flex
-        pos="fixed"
-        top={0}
-        left={0}
-        right={0}
-        align="center"
-        justify="flex-end"
-      >
-        <Icon
-          as={RiDownloadLine}
-          {...iconProps}
-          mx={1}
-          onClick={handleDownload}
-        />
-        <Icon as={MdClose} {...iconProps} ml={1} onClick={closePreview} />
-      </Flex>
+      {(imageLoaded || error) && (
+        <Flex
+          pos="fixed"
+          top={0}
+          left={0}
+          right={0}
+          align="center"
+          justify="flex-end"
+        >
+          <Icon
+            as={RiDownloadLine}
+            {...iconProps}
+            mx={1}
+            onClick={handleDownload}
+          />
+          <Icon as={MdClose} {...iconProps} ml={1} onClick={closePreview} />
+        </Flex>
+      )}
       {imageLoaded ? (
         <Heading color="white" size="md" mb={2} fontWeight={600}>
           {realName}
         </Heading>
       ) : error ? (
-        <Text color="white" fontSize="32px">Failed to load image.</Text>
+        <Text color="white" fontSize="32px">
+          Failed to load image.
+        </Text>
       ) : (
         <CircularProgress isIndeterminate color="teal.500" size={100} />
       )}

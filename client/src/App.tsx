@@ -10,6 +10,7 @@ const RegisterPage = lazy(() => import("./pages/register.page"));
 const HomePage = lazy(() => import("./pages/index.page"));
 const MyStoragePage = lazy(() => import("./pages/mystorage.page"));
 const RecentPage = lazy(() => import("./pages/recent.page"));
+const SearchPage = lazy(() => import("./pages/search.page"));
 
 function App() {
   return (
@@ -17,6 +18,9 @@ function App() {
       <Providers>
         <BrowserRouter>
           <Switch>
+            <PrivateRoute path="/search" exact useStorageLayout>
+              <SearchPage />
+            </PrivateRoute>
             <PrivateRoute path="/mystorage" exact useStorageLayout>
               <MyStoragePage />
             </PrivateRoute>

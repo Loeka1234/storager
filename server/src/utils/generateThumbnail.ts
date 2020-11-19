@@ -12,17 +12,22 @@ export const generateThumbnail = async (
 
     if (!existsSync(thumnailPath)) mkdirSync(thumnailPath);
 
+    const fileNameWithoutExt = fileName.replace(path.extname(fileName), "");
+
     sharp(filePath)
       .resize(250, 250)
       .webp()
-      .toFile(path.join(thumnailPath, fileName + ".webp"), (err, info) => {
-        if (err)
-          return reject({
-            error: true,
-            message: err,
-          });
+      .toFile(
+        path.join(thumnailPath, fileNameWithoutExt + ".webp"),
+        (err, info) => {
+          if (err)
+            return reject({
+              error: true,
+              message: err,
+            });
 
-        return resolve(info);
-      });
+          return resolve(info);
+        }
+      );
   });
 };

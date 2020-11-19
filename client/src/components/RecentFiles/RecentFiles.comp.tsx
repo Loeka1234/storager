@@ -53,6 +53,7 @@ export const RecentFiles: React.FC<RecentFilesProps> = () => {
       justifyContent="flex-start"
       alignItems="center"
       flexDir="column"
+      maxW="1050px"
     >
       {files?.map(({ updatedAt, mimeType, realName, size, fileName }) => (
         <Flex
